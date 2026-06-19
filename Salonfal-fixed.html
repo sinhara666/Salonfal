@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falali Hair Salon - Voice Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 700px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .chat-header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.bot .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+
+        .chat-input-area {
+            padding: 16px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .chat-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chat-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .voice-btn.listening {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+            }
+        }
+
+        .voice-transcript {
+            background: #f0f0f0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .booking-form {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 14px;
+            margin: 8px 0;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🎤 Falali Hair Salon</h1>
+            <p>Voice & Text Chat</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-bubble">
+                    Hey! 👋 Welcome to Falali Hair Salon. You can talk or type to me. Ask about services, pricing, hours, or booking!
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Type or speak..."
+                autocomplete="off"
+            >
+            <div class="button-group">
+                <button class="chat-btn voice-btn" id="voiceBtn" title="Click to speak">🎤</button>
+                <button class="chat-btn" id="sendBtn" title="Send message">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        let isListening = false;
+
+        // Speech Synthesis Setup
+        const synth = window.speechSynthesis;
+
+        // Knowledge Base
+        const knowledgeBase = {
+            greeting: {
+                patterns: ['hi', 'hello', 'hey', 'what\'s up', 'how are you', 'greetings', 'good morning', 'good afternoon', 'good evening'],
+                response: `How are you? How can I help?`
+            },
+            booking: {
+                patterns: ['book', 'appointment', 'schedule', 'reserve', 'how do i book'],
+                response: `Sure! Let me get your information to book an appointment.`,
+                showForm: true
+            },
+            services: {
+                patterns: ['service', 'haircut', 'color', 'perm', 'treatment', 'styling', 'what do you offer'],
+                response: `We offer haircuts, hair color, perms, treatments, styling, and head massage. Prices range from $15 to $69 depending on the service. Call us for more details!`
+            },
+            hours: {
+                patterns: ['hours', 'open', 'close', 'when are you open', 'time'],
+                response: `We're open Monday through Sunday, 11 AM to 8:30 PM. You can visit us anytime during these hours!`
+            },
+            location: {
+                patterns: ['location', 'address', 'where', 'directions', 'find us'],
+                response: `We're located at 623 South King Street, Seattle, Washington 98104. You can find us in the heart of the city!`
+            },
+            parking: {
+                patterns: ['park', 'parking', 'where to park'],
+                response: `We have several parking options nearby, all within a 2 to 6 minute walk. There's parking at 6th and King, 616 6th Avenue, Uwajimaya, and Interim Parking.`
+            },
+            pricing: {
+                patterns: ['price', 'cost', 'how much', 'expensive', 'rates'],
+                response: `Our haircuts start at $35 for men and $39 for women. Specialty services like perms and color treatments vary in price. Call us at 206-483-4666 for exact pricing!`
+            },
+            policy: {
+                patterns: ['policy', 'policies', 'cancellation', 'no-show', 'refund'],
+                response: `We ask for at least 2 hours notice to cancel or reschedule. If you don't show up or cancel late, there's a $20 fee. We offer free corrections within 7 days for technical issues.`
+            },
+            staff: {
+                patterns: ['staff', 'stylist', 'who works', 'team'],
+                response: `Our team includes talented stylists like Olivia and Eva. You can request your preferred stylist when you book!`
+            }
+        };
+
+        function addMessage(text, isBot = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isBot ? 'bot' : 'user'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addTyping() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'typing-indicator';
+            
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            
+            messageDiv.appendChild(typing);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+        }
+
+        function speakResponse(text) {
+            if (synth.speaking) synth.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            synth.speak(utterance);
+        }
+
+        function showBookingForm() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = `
+                <div class="booking-form">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="bookName" placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="bookPhone" placeholder="(206) 555-1234">
+                    </div>
+                    <div class="form-group">
+                        <label>Service</label>
+                        <select id="bookService">
+                            <option value="">Select service</option>
+                            <option value="Haircut">Haircut</option>
+                            <option value="Color">Color</option>
+                            <option value="Perm">Perm</option>
+                            <option value="Treatment">Treatment</option>
+                            <option value="Styling">Styling</option>
+                            <option value="Massage">Massage</option>
+                        </select>
+                    </div>
+                    <button class="form-submit" onclick="submitBooking()">Book Now</button>
+                </div>
+            `;
+            
+            messageDiv.appendChild(bubble);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function submitBooking() {
+            const name = document.getElementById('bookName').value.trim();
+            const phone = document.getElementById('bookPhone').value.trim();
+            const service = document.getElementById('bookService').value;
+
+            if (!name || !phone || !service) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            addMessage(`${name} | ${phone} | ${service}`, false);
+            addTyping();
+            
+            setTimeout(() => {
+                removeTyping();
+                const confirmMsg = `Perfect! I've got your booking request. We'll call you at ${phone} to confirm your ${service} appointment. Thanks ${name}!`;
+                addMessage(confirmMsg, true);
+                speakResponse(confirmMsg);
+                sendBtn.disabled = false;
+            }, 800);
+        }
+
+        function getAIResponse(userMessage) {
+            for (const [key, item] of Object.entries(knowledgeBase)) {
+                for (const pattern of item.patterns) {
+                    if (userMessage.toLowerCase().includes(pattern)) {
+                        if (item.showForm) {
+                            setTimeout(showBookingForm, 400);
+                        }
+                        return item.response;
+                    }
+                }
+            }
+            return `Great question! For more specific information, please call us at 206-483-4666 or visit us at 623 South King Street. We're open 11 AM to 8:30 PM daily!`;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, false);
+            chatInput.value = '';
+            sendBtn.disabled = true;
+            voiceBtn.disabled = true;
+
+            addTyping();
+            
+            setTimeout(() => {
+                const response = getAIResponse(message);
+                removeTyping();
+                addMessage(response, true);
+                speakResponse(response);
+                sendBtn.disabled = false;
+                voiceBtn.disabled = false;
+                chatInput.focus();
+            }, 400);
+        }
+
+        // Voice Recognition Handlers
+        recognition.onstart = () => {
+            isListening = true;
+            voiceBtn.classList.add('listening');
+            voiceBtn.textContent = '🎤';
+        };
+
+        recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            if (event.results[event.results.length - 1].isFinal) {
+                chatInput.value = transcript;
+            }
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+            voiceBtn.textContent = '🎤';
+            if (chatInput.value.trim()) {
+                sendMessage();
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.log('Speech recognition error:', event.error);
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+        };
+
+        // Event Listeners
+        voiceBtn.addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                chatInput.value = '';
+                recognition.start();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        chatInput.focus();
+    </script>
+</body>
+</html>
